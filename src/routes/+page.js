@@ -6,12 +6,26 @@ export const load = async ({ fetch }) => {
 
 		const spaceXData = await spaceXDataResponse.json();
 
-		const { crew } = spaceXData;
+		const { crew, payloads } = spaceXData;
 
 		const crewData = await fetchCrewData({ crew });
 
-		return { spaceXData, crewData };
+    const payloadData = await fetchPayLoadData(payloads)
+
+		return { spaceXData, crewData, payloadData };
 	};
+
+  const fetchPayLoadData = async (payloads) => {
+    const payloadData = await Promise.all(
+      payloads.map(async (payload) => {
+        return await fetch(`https://api.spacexdata.com/v4/payloads/${payload}`).then((response) =>
+          response.json()
+        );
+      })
+    );
+
+    return payloadData;
+  }
 
 	const fetchCrewData = async ({ crew }) => {
 		const crewData = await Promise.all(
