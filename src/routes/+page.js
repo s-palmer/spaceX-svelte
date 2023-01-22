@@ -1,7 +1,34 @@
+/** @type {import('./$types').PageLoad} */
+
 export const load = async ({ fetch }) => {
-	const apiRes = await fetch('https://api.spacexdata.com/v5/launches/latest');
+	const fetchSpaceXData = async () => {
+		const spaceXDataResponse = await fetch('https://api.spacexdata.com/v5/launches/latest');
 
-	const apiData = await apiRes.json();
+		const spaceXData = await spaceXDataResponse.json();
 
-	return	apiData
+		const { crew } = spaceXData;
+
+		const crewData = await fetchCrewData({ crew });
+
+		return { spaceXData, crewData };
+	};
+
+	const fetchCrewData = async ({ crew }) => {
+		const crewData = await Promise.all(
+			crew.map(async ({ crew: id, role }) => {
+				return {
+					role: role,
+					data: await fetch(`https://api.spacexdata.com/v4/crew/${id}`).then((response) =>
+						response.json()
+					)
+				};
+			})
+		);
+
+		return crewData;
+	};
+
+	return {
+		allData: fetchSpaceXData()
+	};
 };
